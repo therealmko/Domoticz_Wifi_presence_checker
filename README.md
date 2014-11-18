@@ -55,14 +55,17 @@ Version       Date            Major changes
   ```
 
   - snmp_routers.json follows this setup
+  ```
    ipaddress			-> IP address of your router (mandatory)
    "Vendor" 			-> Router vendor - not used a.t.m.
    "Model"			-> Router model - not used a.t.m.
    "Purpose"			-> Router purpose - not used a.t.m.
    "Location"			-> Router location - not used a.t.m.
    "CommunityString"		-> Router SNMP communitystring - not used a.t.m.
+  ```
 
   - wifi_devices.json follows this setup
+  ```
     mobile mac address		-> MAC address of your mobile device (mandatory)
     "Vendor"			-> Mobile device vendor - not used a.t.m.
     "Type"			-> Mobile device type - not used a.t.m.
@@ -70,7 +73,8 @@ Version       Date            Major changes
     "Owner"			-> Mobile device owner - not used a.t.m.
     "Idx" 			-> Domoticz switch to turn on and off (mandatory)
     "Idx_opt"			-> Additional Domoticz switch to turn on and off (mandatory, 0 if not used)
+  ```
 
 ###EXECUTION
 * This script is scheduled through a crontab entry (if preferred through a wrapper script). My crontab entry for a script looks like this:
-    "* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh"
+  "* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh"
