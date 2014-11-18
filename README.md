@@ -27,7 +27,7 @@ Version       Date            Major changes
 
 ###SETUP
 * Disclaimer
-  - I have this script running for a couple of weeks already with issues. That being said I cannot guarentee that it will work in other situations and setups. Please take that into account when attempting to use this.
+  - I have this script running for a couple of weeks already without issues. That being said I cannot guarentee that it will work in other situations and setups. Please take that into account when attempting to use this.
 
 * Pre-requisits
   - This scripts assumes you have a SNMP capable [dd-wrt router](http://dd-wrt.com/). It's tested with various dd-wrt versions on various routers.
