@@ -78,4 +78,4 @@ Version       Date            Major changes
 ###EXECUTION
 * This script is scheduled through a crontab entry (if preferred through a wrapper script). My crontab entry for a script looks like this:
 
-* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh
+`* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh`
