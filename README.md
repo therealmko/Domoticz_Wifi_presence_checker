@@ -1,5 +1,5 @@
 ###THANKS AND ACKNOWLEDGEMENT
-######Thanks and credits go out to the below from which I generously borrowed most of their work:
+######Thanks and credits go out to the below people on the [Domoticz Forum](http://www.domoticz.com/forum/index.php), from which I generously borrowed most of their work:
 * SweetPants ([not at home](http://www.domoticz.com/forum/viewtopic.php?f=31&t=279))
 * Jan ([Wifi presence check]( http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713))
 * Chopper_Rob ([check_device_online.py](http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
@@ -9,7 +9,7 @@ Script : check_device_online.py
 Initial version : SweetPants & Jan N                                                                          
 Version : 1.3                                                                                                
 Date : 18-11-2014                                                                                             
-Author : MKO 
+Author : xKingx
 
 ```
 Version       Date            Major changes
@@ -77,4 +77,4 @@ Version       Date            Major changes
 
 ###EXECUTION
 * This script is scheduled through a crontab entry (if preferred through a wrapper script). My crontab entry for a script looks like this:
-  "* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh"
+`"* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh"`
