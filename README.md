@@ -4,6 +4,11 @@
 * Jan ([Wifi presence check]( http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713))
 * Chopper_Rob ([check_device_online.py](http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
 
+###Purpose
+I wanted a way to let Domoticz know when a person in my household (defined by a mobile device) was inside or close by and trigger switches in Domoticz based on that. I found a couple of script doing this using SNMP on the Domoticz forums. However I have a couple of routers I need to look at as devices can switch between them and I do not want switches to go on and of each time. So I combined what suited me best from various scripts, added some additions of my own and wrote a little documentation.
+
+So now this is a script fed by 2 input files (for router and mobile device details) running as a makeshift daemon checking SNMP details every x seconds.
+
 ###VERSIONING
 Script : check_device_online.py                                                                               
 Initial version : SweetPants & Jan N                                                                          
