@@ -1,0 +1,16 @@
+{
+   "<ipaddress 1>": {
+      "Vendor": "",
+      "Model": "",
+      "Purpose": "",
+      "Location": "",
+      "CommunityString": ""
+   },
+   "<ipaddress n": {
+      "Vendor": "",
+      "Model": "",
+      "Purpose": "",
+      "Location": "",
+      "CommunityString": ""
+   }
+}

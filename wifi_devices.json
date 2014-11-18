@@ -1,0 +1,18 @@
+{
+   "<mobile mac address 1": {
+      "Vendor": "",
+      "Type": "",
+      "Model": "",
+      "Owner": "",
+      "Idx": , -->mandatory
+      "Idx_opt": 0 -->optional
+   },
+   "<mobile mac address n": {
+      "Vendor": "",
+      "Type": "",
+      "Model": "",
+      "Owner": "",
+      "Idx": , -->mandatory
+      "Idx_opt": 0 -->optional
+   }
+}
