@@ -1,41 +1,43 @@
 #!/usr/bin/python
-#################################################################################################################
-#														#
-# Thanks and credits go out to the below from which I generously borrowed most of their work :			#
-# * SweetPants (not at home : http://www.domoticz.com/forum/viewtopic.php?f=31&t=279)				#
-# * Jan (Wifi presence check : http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713				#
-# * Chopper_Rob (check_device_online.py : http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595 and		# 
-#                https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz)			#
-#														#
-# Script : check_device_online.py										#
-# Initial version : SweetPants & Jan N										#
-# Version : 1.4													#
-# Date : 19-11-2014												#
-# Author : xKingx												#
-#														#
-# Version	Date		Major changes									#
-# 1.0		31-10-2014	Added sleep loop | Added sleep time input option				#
-# 1.1		04-11-2014	Added Domoticz host as an optional variable					#
-# 1.2		05-11-2014	Added option to device json file to turn on optional switch			#
-# 1.3		06-11-2014	Added option to search routers based on JSON input and removed ip option	#
-# 1.4		19-11-2014	Added community string to JSON SNMP device list and use it to read out router	#
-#														#
-# To Do														#
-# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in				#
-# - Look at way to prevent devices that reconnect from triggering presence reporting				#
-# - Add way to check which router mobile device is connected to and do switching based of that if desired	#
-# - Make SNMP key variable											#
-# - Build in check for community string in SNMP version <3							#
-#														#
-# Notes :													#
-# - This script is not compatible with python 3 and is tested on python 2.7					#
-# - This scripts assumes you have a SNMP capable dd-wrt router. It's tested with various dd-wrt versions	#
-# - This script is scheduled through a crontab entry (if preferred through a wrapper script)			#
-# - Script is running on Raspberry Pi, might need to be adapted for other OS'					#
-# - To run on RPI with standard Domoticz image add this : sudo apt-get install python libsnmp-python		#
-# - To switch on optional switch add that switch idx to json device file (Idx_opt value), default needs to be 0	# 
-#														#
-#################################################################################################################
+#########################################################################################################################
+#															#
+# Purpose: Python script and JSON files to check Wifi presence for Domoticz Home Automation application			#
+#															#
+# Thanks and credits go out to the below from which I generously borrowed most of their work on the domoticz forums:	#
+# * SweetPants (not at home : http://www.domoticz.com/forum/viewtopic.php?f=31&t=279)					#
+# * Jan (Wifi presence check : http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713					#
+# * Chopper_Rob (check_device_online.py : http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595 and			#	 
+#                https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz)				#
+#															#
+# Script : check_device_online.py											#
+# Initial version : SweetPants & Jan N											#
+# Version : 1.4														#
+# Date : 19-11-2014													#
+# Author : xKingx													#
+#															#
+# Version	Date		Major changes										#
+# 1.0		31-10-2014	Added sleep loop | Added sleep time input option					#
+# 1.1		04-11-2014	Added Domoticz host as an optional variable						#
+# 1.2		05-11-2014	Added option to device json file to turn on optional switch				#
+# 1.3		06-11-2014	Added option to search routers based on JSON input and removed ip option		#
+# 1.4		19-11-2014	Added community string to JSON SNMP device list and use it to read out router		#
+#															#
+# To Do															#
+# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in					#
+# - Look at way to prevent devices that reconnect from triggering presence reporting					#
+# - Add way to check which router mobile device is connected to and do switching based of that if desired		#
+# - Make SNMP key variable												#
+# - Build in check for community string in SNMP version <3								#
+#															#
+# Notes :														#
+# - This script is not compatible with python 3 and is tested on python 2.7						#
+# - This scripts assumes you have a SNMP capable dd-wrt router. It's tested with various dd-wrt versions		#
+# - This script is scheduled through a crontab entry (if preferred through a wrapper script)				#
+# - Script is running on Raspberry Pi, might need to be adapted for other OS'						#
+# - To run on RPI with standard Domoticz image add this : sudo apt-get install python libsnmp-python			#
+# - To switch on optional switch add that switch idx to json device file (Idx_opt value), default needs to be 0		# 
+#															#
+#########################################################################################################################
 
 import sys
 import argparse
