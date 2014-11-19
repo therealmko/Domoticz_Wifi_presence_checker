@@ -2,7 +2,7 @@
 ######Thanks and credits go out to the below people on the [Domoticz Forum](http://www.domoticz.com/forum/index.php), from which I generously borrowed most of their work:
 * SweetPants ([not at home](http://www.domoticz.com/forum/viewtopic.php?f=31&t=279))
 * Jan ([Wifi presence check]( http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713))
-* Chopper_Rob ([check_device_online.py](http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
+* Chopper_Rob ([check_device_online.py](https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz) and (http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
 
 ###Purpose
 I wanted a way to let Domoticz know when a person in my household (defined by a mobile device) was inside or close by and trigger switches in Domoticz based on that. I found a couple of script doing this using SNMP on the Domoticz forums. However I have a couple of routers I need to look at as devices can switch between them and I do not want switches to go on and of each time. So I combined what suited me best from various scripts, added some additions of my own and wrote a little documentation.
@@ -10,22 +10,24 @@ I wanted a way to let Domoticz know when a person in my household (defined by a 
 So now this is a script fed by 2 input files (for router and mobile device details) running as a makeshift daemon checking SNMP details every x seconds.
 
 ###VERSIONING
-Script : check_device_online.py                                                                               
-Initial version : SweetPants & Jan N                                                                          
-Version : 1.3                                                                                                
-Date : 18-11-2014                                                                                             
+Script : check_device_online.py
+Initial version : SweetPants & Jan N
+Version : 1.4
+Date : 19-11-2014
 Author : xKingx
 
 ```
-Version       Date            Major changes
-1.0           31-10-2014      Added sleep loop | Added sleep time input option
-1.1           04-11-2014      Added Domoticz host as an optional variable
-1.2           05-11-2014      Added option to device json file to turn on optional switch
-1.3           06-11-2014      Added option to search routers based on JSON input and removed ip option from command line input
+Version       Date            Author    Major changes
+1.0           31-10-2014      xKingx    Added sleep loop | Added sleep time input option
+1.1           04-11-2014      xKingx    Added Domoticz host as an optional variable
+1.2           05-11-2014      xKingx    Added option to device json file to turn on optional switch
+1.3           06-11-2014      xKingx    Added option to search routers based on JSON input and removed ip option from command line input
+1.4           19-11-2014      xKingx    Added community string to JSON SNMP device list and use it to read out router
 ```
 
 ###TODO
-* Add community string to JSON SNMP device list and use it to read out router
+* Add way to check which router mobile device is connected to and do switching based of that if desired
+* Build in check for community string in SNMP version <3
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
 * Look at way to prevent devices that reconnect from triggering presence reporting
 * Make SNMP key variable

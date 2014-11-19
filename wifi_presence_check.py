@@ -4,25 +4,28 @@
 # Thanks and credits go out to the below from which I generously borrowed most of their work :			#
 # * SweetPants (not at home : http://www.domoticz.com/forum/viewtopic.php?f=31&t=279)				#
 # * Jan (Wifi presence check : http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713				#
-# * Chopper_Rob (check_device_online.py : http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595)		#
+# * Chopper_Rob (check_device_online.py : http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595 and		# 
+#                https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz)			#
 #														#
 # Script : check_device_online.py										#
 # Initial version : SweetPants & Jan N										#
-# Version : 1.2													#
-# Date : 04-11-2014												#
-# Author : MKO													#
+# Version : 1.4													#
+# Date : 19-11-2014												#
+# Author : xKingx												#
 #														#
 # Version	Date		Major changes									#
 # 1.0		31-10-2014	Added sleep loop | Added sleep time input option				#
 # 1.1		04-11-2014	Added Domoticz host as an optional variable					#
 # 1.2		05-11-2014	Added option to device json file to turn on optional switch			#
 # 1.3		06-11-2014	Added option to search routers based on JSON input and removed ip option	#
+# 1.4		19-11-2014	Added community string to JSON SNMP device list and use it to read out router	#
 #														#
 # To Do														#
-# - Add community string to JSON SNMP device list and use it to read out router					#
 # - Look into way results of SNMP walk are gathered as I put a dirty counter hack in				#
 # - Look at way to prevent devices that reconnect from triggering presence reporting				#
+# - Add way to check which router mobile device is connected to and do switching based of that if desired	#
 # - Make SNMP key variable											#
+# - Build in check for community string in SNMP version <3							#
 #														#
 # Notes :													#
 # - This scripts assumes you have a SNMP capable dd-wrt router. It's tested with various dd-wrt versions	#
@@ -42,10 +45,11 @@ import subprocess
 import time
 from datetime import datetime
 from pprint import pprint
+from collections import defaultdict
 
 def cli_options():
    cli_args = {}
-   cli_args['community'] = 'public'
+   #cli_args['community'] = 'public'
    cli_args['version'] = 2
    cli_args['secname'] = None
    cli_args['seclevel'] = 'AuthNoPriv'
@@ -63,7 +67,6 @@ def cli_options():
    # Parse the CLI
    parser = argparse.ArgumentParser()
    parser.add_argument('-v', '--version', help='SNMP version', type=int )
-   parser.add_argument('-c', '--community', help='SNMPv1/2 community string')
    parser.add_argument('-u', '--secname', help='SNMPv3 secname')
    parser.add_argument('-l', '--seclevel', help='SNMPv3 security level (NoAuthNoPriv, AuthNoPriv, AuthPriv)')
    parser.add_argument('-A', '--authpassword', help='SNMPv3 authpassword')
@@ -86,8 +89,6 @@ def cli_options():
    # Assign and verify SNMP arguments
    if args.version:
       cli_args['version'] = args.version
-   if args.community:
-      cli_args['community'] = args.community
    if (cli_args['version'] != 1) and (cli_args['version'] != 2) and (cli_args['version'] != 3):
       print 'ERROR: Only SNMPv2 and SNMPv3 are supported'
       sys.exit(2)
@@ -112,9 +113,9 @@ def cli_options():
       cli_args['jsonmacaddressfile'] = args.jsonmacaddressfile
    if args.jsonmacaddressfile:
       cli_args['jsonsnmproutersfile'] = args.jsonsnmproutersfile
-   if (cli_args['version']!= 3) and (not cli_args['community']):
-      print '{0} ERROR: SNMP community string not defined'.format(date_time())
-      sys.exit(2)
+   #if (cli_args['version']!= 3) and (not cli_args['community']):
+   #   print '{0} ERROR: SNMP community string not defined'.format(date_time())
+   #   sys.exit(2)
    if args.sleeptime:
       cli_args['sleeptime'] = args.sleeptime
    if args.domoticzhost:
@@ -138,12 +139,13 @@ def snmp_walk(cli_args, oid, router_list):
    session = False
    results_objs = False
    count = 0
-   #merged_objs = []
 
-   for router in router_list:
+   for router, keys in router_list.iteritems():
+      location = keys[0]
+      commstring = keys[1]
       try:
          session = netsnmp.Session(
-         DestHost=router,Version=cli_args['version'], Community=cli_args['community'],
+         DestHost=router,Version=cli_args['version'], Community=commstring,
          SecLevel=cli_args['seclevel'], AuthProto=cli_args['authprotocol'], AuthPass=cli_args['authpassword'],
          PrivProto=cli_args['privprotocol'], PrivPass=cli_args['privpassword'], SecName=cli_args['secname'], UseNumeric=True)
 
@@ -157,9 +159,6 @@ def snmp_walk(cli_args, oid, router_list):
       if (session.ErrorStr):
          print "{0} ERROR: Occurred during SNMPget for OID {1} from {2}: ({3}) ErrorNum: {4}, ErrorInd: {5}".format(date_time(), oid, router, session.ErrorStr, session.ErrorNum, session.ErrorInd)
          sys.exit(2)
-
-      #merged_objs = merged_objs + results_objs  
-      #merged_objs.append(results_objs)
 
       # Construct the results to return
       for result in results_objs:
@@ -310,13 +309,14 @@ def main():
       (data) = read_json(cli_parms['jsonmacaddressfile'])
       (routers) = read_json(cli_parms['jsonsnmproutersfile'])
      
-      # Create 1 list with all routers to check
-      router_list = []
+      # Create 1 dictionary with all routers to check
+      router_list = defaultdict(list)
       for key, value in routers.items():
-          router_list.append(key)
+          router_list[key].append(value["Location"])
+          router_list[key].append(value["CommunityString"])
+      router_list = dict(router_list)
 
       (found_macs) = mac_table(cli_parms, '.1.3.6.1.4.1.2021.255.3.54.1.3.32.1.4', router_list)
-      #print found_macs
 
       for key, value in data.items():
 
