@@ -2,7 +2,7 @@
 ######Thanks and credits go out to the below people on the [Domoticz Forum](http://www.domoticz.com/forum/index.php), from which I generously borrowed most of their work:
 * SweetPants ([not at home](http://www.domoticz.com/forum/viewtopic.php?f=31&t=279))
 * Jan ([Wifi presence check]( http://www.domoticz.com/forum/viewtopic.php?f=11&t=1713))
-* Chopper_Rob ([check_device_online.py](https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz) and (http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
+* Chopper_Rob ([check_device_online.py on his homepage](https://www.chopperrob.nl/domoticz/5-report-devices-online-status-to-domoticz) and [check_device_online.py](http://www.domoticz.com/forum/viewtopic.php?f=23&t=2595))
 
 ###Purpose
 I wanted a way to let Domoticz know when a person in my household (defined by a mobile device) was inside or close by and trigger switches in Domoticz based on that. I found a couple of script doing this using SNMP on the Domoticz forums. However I have a couple of routers I need to look at as devices can switch between them and I do not want switches to go on and of each time. So I combined what suited me best from various scripts, added some additions of my own and wrote a little documentation.
