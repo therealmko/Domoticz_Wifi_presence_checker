@@ -10,13 +10,13 @@ I wanted a way to let Domoticz know when a person in my household (defined by a 
 So now this is a script fed by 2 input files (for router and mobile device details) running as a makeshift daemon checking SNMP details every x seconds.
 
 ###VERSIONING
+```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
 Version : 1.4
 Date : 19-11-2014
 Author : xKingx
 
-```
 Version       Date            Author    Major changes
 1.0           31-10-2014      xKingx    Added sleep loop | Added sleep time input option
 1.1           04-11-2014      xKingx    Added Domoticz host as an optional variable
