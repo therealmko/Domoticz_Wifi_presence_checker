@@ -28,6 +28,7 @@
 # - Build in check for community string in SNMP version <3							#
 #														#
 # Notes :													#
+# - This script is not compatible with python 3 and is tested on python 2.7					#
 # - This scripts assumes you have a SNMP capable dd-wrt router. It's tested with various dd-wrt versions	#
 # - This script is scheduled through a crontab entry (if preferred through a wrapper script)			#
 # - Script is running on Raspberry Pi, might need to be adapted for other OS'					#
