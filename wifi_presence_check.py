@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.4														#
-# Date : 19-11-2014													#
+# Version : 1.5														#
+# Date : 20-11-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -21,13 +21,16 @@
 # 1.2		05-11-2014	Added option to device json file to turn on optional switch				#
 # 1.3		06-11-2014	Added option to search routers based on JSON input and removed ip option		#
 # 1.4		19-11-2014	Added community string to JSON SNMP device list and use it to read out router		#
+# 1.5		20-11-2014	Moved stuff into functions to be able to scale a bit better				#
+# 1.6		20-11-2014	Moved SNMP key variable to SNMP Router JSON file					#
 #															#
 # To Do															#
 # - Look into way results of SNMP walk are gathered as I put a dirty counter hack in					#
 # - Look at way to prevent devices that reconnect from triggering presence reporting					#
 # - Add way to check which router mobile device is connected to and do switching based of that if desired		#
-# - Make SNMP key variable												#
 # - Build in check for community string in SNMP version <3								#
+# - Prevent Idx_opt option in mobile JSON file from being mandatory							#
+# - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
 #															#
 # Notes :														#
 # - This script is not compatible with python 3 and is tested on python 2.7						#
@@ -137,7 +140,7 @@ def is_number(val):
       return False
 
 
-def snmp_walk(cli_args, oid, router_list):
+def snmp_walk(cli_args, router_list):
    return_results = {}
    session = False
    results_objs = False
@@ -146,6 +149,8 @@ def snmp_walk(cli_args, oid, router_list):
    for router, keys in router_list.iteritems():
       location = keys[0]
       commstring = keys[1]
+      oid = keys[2]
+
       try:
          session = netsnmp.Session(
          DestHost=router,Version=cli_args['version'], Community=commstring,
@@ -193,16 +198,16 @@ def bin_to_mac(octet):
    return ":".join([x.encode("hex") for x in list(octet)])
 
 
-def mac_table(cli_parms, oid, router_list):
-   (mac_results) = snmp_walk(cli_parms, oid, router_list)
+def mac_table(cli_parms, router_list):
+   (mac_results) = snmp_walk(cli_parms, router_list)
 
    return mac_results
 
        
-def mac_in_table(searched_mac, mac_results, oid):
+def mac_in_table(searched_mac, mac_results):
    mac = searched_mac
    # Loop through every MAC address found
-   for oid, mac in mac_results.iteritems():
+   for mac in mac_results.iteritems():
       mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
       if mac == searched_mac:
          return True
@@ -222,6 +227,15 @@ def read_json(json_file):
        sys.exit(2)
 
     return data
+
+def get_router(routers):
+   router_list = defaultdict(list)
+   for key, value in routers.items():
+       router_list[key].append(value["Location"])
+       router_list[key].append(value["CommunityString"])
+       router_list[key].append(value["RequestString"])
+   router_list = dict(router_list)
+   return router_list
 
 
 # This class is derived from Pymoticz, modified to use httplib
@@ -303,7 +317,7 @@ def main():
    if int(subprocess.check_output('ps x | grep \'' + sys.argv[0] + '\' | grep \'' + cli_parms['domoticzhost'] + '\' | grep -cv grep', shell=True)) > 1:
       #print datetime.now().strftime("%H:%M:%S") + "- script already running. exiting."
       sys.exit(0)
- 
+
  
    # Enter recurring loop to act like daemon
    while 1==1:
@@ -313,16 +327,12 @@ def main():
       (routers) = read_json(cli_parms['jsonsnmproutersfile'])
      
       # Create 1 dictionary with all routers to check
-      router_list = defaultdict(list)
-      for key, value in routers.items():
-          router_list[key].append(value["Location"])
-          router_list[key].append(value["CommunityString"])
-      router_list = dict(router_list)
+      (router_list) = get_router(routers)
 
-      (found_macs) = mac_table(cli_parms, '.1.3.6.1.4.1.2021.255.3.54.1.3.32.1.4', router_list)
+      # Do actual checking of MAC addresses against router entries
+      (found_macs) = mac_table(cli_parms, router_list)
 
       for key, value in data.items():
-
          # Switch by Index (idx)
          switch_idx = value["Idx"]
 	 switch_idx_optional = value["Idx_opt"]
@@ -333,7 +343,7 @@ def main():
          # Get Name of switch from Domoticz
          switch_name = d.get_device(switch_idx)['Name']
 
-         if mac_in_table(key, found_macs, '.1.3.6.1.4.1.2021.255.3.54.1.3.32.1.4'):
+         if mac_in_table(key, found_macs):
             if d.turn_on_if_off(switch_idx) and cli_parms['verbose']: # Turn switch On only if Off
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_name)
          else:

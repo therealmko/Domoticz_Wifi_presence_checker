@@ -4,13 +4,15 @@
       "Model": "",
       "Purpose": "",
       "Location": "",
-      "CommunityString": ""
+      "CommunityString": "",
+      "RequestString": ""
    },
    "<ipaddress n": {
       "Vendor": "",
       "Model": "",
       "Purpose": "",
       "Location": "",
-      "CommunityString": ""
+      "CommunityString": "",
+      "RequestString": ""
    }
 }

@@ -13,8 +13,8 @@ So now this is a script fed by 2 input files (for router and mobile device detai
 ```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
-Version : 1.4
-Date : 19-11-2014
+Version : 1.6
+Date : 20-11-2014
 Author : xKingx
 
 Version       Date            Author    Major changes
@@ -23,6 +23,8 @@ Version       Date            Author    Major changes
 1.2           05-11-2014      xKingx    Added option to device json file to turn on optional switch
 1.3           06-11-2014      xKingx    Added option to search routers based on JSON input and removed ip option from command line input
 1.4           19-11-2014      xKingx    Added community string to JSON SNMP device list and use it to read out router
+1.5           20-11-2014      xKingx    Moved some stuff to functions for some more flexibility
+1.6           20-11-2014      xKingx    Moved SNMP key variable to SNMP Router JSON file
 ```
 
 ###TODO
@@ -30,14 +32,16 @@ Version       Date            Author    Major changes
 * Build in check for community string in SNMP version <3
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
 * Look at way to prevent devices that reconnect from triggering presence reporting
-* Make SNMP key variable
+* Prevent Idx_opt option in mobile JSON file from being mandatory
+* Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch
 
 ###SETUP
 * Disclaimer
   - I have this script running for a couple of weeks already without issues. That being said I cannot guarentee that it will work in other situations and setups. Please take that into account when attempting to use this.
+  - I am fine for anyone to use or modify this script as long as no money is made and the creators are mentioned.
 
 * Pre-requisits
-  - This script is not compatible with python 3 and is tested on python 2.7
+  - This script is not compatible with python 3 (yet) and is tested on python 2.7
   - This scripts assumes you have a SNMP capable [dd-wrt router](http://dd-wrt.com/). It's tested with various dd-wrt versions on various routers.
     To turn it on in the dd-wrt GUI go to *"services" tab, enable SNMP, set it up like you want and hit "Save" and "Apply Settings"*
   - To run on RPI with standard Domoticz image add these packages from a shell prompt : *sudo apt-get install python libsnmp-python*
@@ -69,7 +73,8 @@ Version       Date            Author    Major changes
    "Model"                      -> Router model - not used a.t.m.
    "Purpose"                    -> Router purpose - not used a.t.m.
    "Location"                   -> Router location - not used a.t.m.
-   "CommunityString"            -> Router SNMP communitystring - not used a.t.m.
+   "CommunityString"            -> Router SNMP communitystring (mandatory)
+   "RequestString"              -> SNMP query string for value to be returned from router (mandatory)
   ```
 
   - wifi_devices.json follows this setup
