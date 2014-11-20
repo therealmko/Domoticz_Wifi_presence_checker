@@ -5,7 +5,7 @@
       "Model": "",
       "Owner": "",
       "Idx": , -->mandatory
-      "Idx_opt": 0 -->optional
+      "Idx_opt": "" or <switch number>
    },
    "<mobile mac address n": {
       "Vendor": "",
@@ -13,6 +13,6 @@
       "Model": "",
       "Owner": "",
       "Idx": , -->mandatory
-      "Idx_opt": 0 -->optional
+      "Idx_opt": "" or <switch number>
    }
 }
