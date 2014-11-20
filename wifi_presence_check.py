@@ -23,16 +23,17 @@
 # 1.4		19-11-2014	Added community string to JSON SNMP device list and use it to read out router		#
 # 1.5		20-11-2014	Moved stuff into functions to be able to scale a bit better				#
 # 1.6		20-11-2014	Moved SNMP key variable to SNMP Router JSON file					#
+# 1.7		20-11-2014	Bug fix											#
+# 1.8		20-11-2014	Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string	#
 #															#
 # To Do															#
 # - Look at way to prevent devices that reconnect from triggering presence reporting					#
 # - Add way to check which router mobile device is connected to and do switching based of that if desired		#
 # - Build in check for community string in SNMP version <3								#
 # - General input validation on parameters received from command line and JSON files					#
-# - Prevent Idx_opt option in mobile JSON file from being mandatory							#
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
-# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as otherwise#
-#   auto generated dictionay key in loop will be overwritten during dict.update()					#
+# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as		# 
+#   otherwise auto generated dictionay key in loop will be overwritten during dict.update()				#
 #															#
 # Notes :														#
 # - This script is not compatible with python 3 and is tested on python 2.7						#
@@ -276,7 +277,7 @@ class Domoticz:
       status=False
       if (self.get_switch_status(_id) == "Off"):
          self.turn_on(_id)
-         if (self.idx_opt != 0):
+         if self.idx_opt:
              self.turn_on(self.idx_opt)
          status=True
       return status
