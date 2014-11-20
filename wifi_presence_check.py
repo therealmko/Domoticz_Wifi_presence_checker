@@ -25,12 +25,14 @@
 # 1.6		20-11-2014	Moved SNMP key variable to SNMP Router JSON file					#
 #															#
 # To Do															#
-# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in					#
 # - Look at way to prevent devices that reconnect from triggering presence reporting					#
 # - Add way to check which router mobile device is connected to and do switching based of that if desired		#
 # - Build in check for community string in SNMP version <3								#
+# - General input validation on parameters received from command line and JSON files					#
 # - Prevent Idx_opt option in mobile JSON file from being mandatory							#
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
+# - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as otherwise#
+#   auto generated dictionay key in loop will be overwritten during dict.update()					#
 #															#
 # Notes :														#
 # - This script is not compatible with python 3 and is tested on python 2.7						#
@@ -171,7 +173,7 @@ def snmp_walk(cli_args, router_list):
       # Construct the results to return
       for result in results_objs:
          if is_number(result.val):
-            return_results[('%s.%s') % (result.tag, result.iid)] = ( float(result.val))
+            return_results[('%s.%s') % (count, result.iid)] = ( float(result.val))
          else:
             #return_results[('%s.%s') % (result.tag, result.iid)] = ( result.val)
             return_results[('%s.%s') % (count, result.iid)] = ( result.val)
@@ -207,7 +209,7 @@ def mac_table(cli_parms, router_list):
 def mac_in_table(searched_mac, mac_results):
    mac = searched_mac
    # Loop through every MAC address found
-   for mac in mac_results.iteritems():
+   for counter, mac in mac_results.iteritems():
       mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
       if mac == searched_mac:
          return True
