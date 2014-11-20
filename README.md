@@ -25,14 +25,16 @@ Version       Date            Author    Major changes
 1.4           19-11-2014      xKingx    Added community string to JSON SNMP device list and use it to read out router
 1.5           20-11-2014      xKingx    Moved some stuff to functions for some more flexibility
 1.6           20-11-2014      xKingx    Moved SNMP key variable to SNMP Router JSON file
+1.7           20-11-2014      xKingx    Bug fixes
+1.8           20-11-2014      xKingx    Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string
 ```
 
 ###TODO
 * Add way to check which router mobile device is connected to and do switching based of that if desired
 * Build in check for community string in SNMP version <3
+* General input validation on parameters received from command line and JSON files
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
 * Look at way to prevent devices that reconnect from triggering presence reporting
-* Prevent Idx_opt option in mobile JSON file from being mandatory
 * Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch
 
 ###SETUP
@@ -85,7 +87,7 @@ Version       Date            Author    Major changes
     "Model"                     -> Mobile device model - not used a.t.m.
     "Owner"                     -> Mobile device owner - not used a.t.m.
     "Idx"                       -> Domoticz switch to turn on and off (mandatory)
-    "Idx_opt"                   -> Additional Domoticz switch to turn on and off (mandatory, 0 if not used)
+    "Idx_opt"                   -> Additional Domoticz switch to turn on and off, should be empty string, i.e. "" if not used
   ```
 
 ###EXECUTION
