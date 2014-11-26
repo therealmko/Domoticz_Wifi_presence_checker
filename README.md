@@ -13,8 +13,8 @@ So now this is a script fed by 2 input files (for router and mobile device detai
 ```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
-Version : 1.6
-Date : 20-11-2014
+Version : 1.8.1
+Date : 26-11-2014
 Author : xKingx
 
 Version       Date            Author    Major changes
@@ -27,10 +27,12 @@ Version       Date            Author    Major changes
 1.6           20-11-2014      xKingx    Moved SNMP key variable to SNMP Router JSON file
 1.7           20-11-2014      xKingx    Bug fixes
 1.8           20-11-2014      xKingx    Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string
+1.8.1         26-11-2014      xKingx    Temporary version with initial code for location detection
 ```
 
 ###TODO
 * Add way to check which router mobile device is connected to and do switching based of that if desired
+* Add option to use location switching and ignore if not used
 * Build in check for community string in SNMP version <3
 * General input validation on parameters received from command line and JSON files
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
@@ -46,7 +48,7 @@ Version       Date            Author    Major changes
   - This script is not compatible with python 3 (yet) and is tested on python 2.7
   - This scripts assumes you have a SNMP capable [dd-wrt router](http://dd-wrt.com/). It's tested with various dd-wrt versions on various routers.
     To turn it on in the dd-wrt GUI go to *"services" tab, enable SNMP, set it up like you want and hit "Save" and "Apply Settings"*
-  - To run on RPI with standard Domoticz image add these packages from a shell prompt : *sudo apt-get install python libsnmp-python*
+  - To run on RPI with standard Domoticz image add these packages from a shell prompt : *sudo apt-get install python snmp libsnmp-python*
 
 * Configuration
   - check_device_online.py takes the following parameters:
@@ -74,7 +76,8 @@ Version       Date            Author    Major changes
    "Vendor"                     -> Router vendor - not used a.t.m.
    "Model"                      -> Router model - not used a.t.m.
    "Purpose"                    -> Router purpose - not used a.t.m.
-   "Location"                   -> Router location - not used a.t.m.
+   "Location"                   -> Router location - used to give location a meaningfull name
+   "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off switch in Domoticz
    "CommunityString"            -> Router SNMP communitystring (mandatory)
    "RequestString"              -> SNMP query string for value to be returned from router (mandatory)
   ```

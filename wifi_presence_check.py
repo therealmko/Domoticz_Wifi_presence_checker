@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.5														#
-# Date : 20-11-2014													#
+# Version : 1.8.1													#
+# Date : 26-11-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -25,10 +25,12 @@
 # 1.6		20-11-2014	Moved SNMP key variable to SNMP Router JSON file					#
 # 1.7		20-11-2014	Bug fix											#
 # 1.8		20-11-2014	Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string	#
+#1.8.1		26-11-2014	Temporary version with initial code for location detection				#
 #															#
 # To Do															#
 # - Look at way to prevent devices that reconnect from triggering presence reporting					#
 # - Add way to check which router mobile device is connected to and do switching based of that if desired		#
+# - Add option to use location switching and ignore if not used								#
 # - Build in check for community string in SNMP version <3								#
 # - General input validation on parameters received from command line and JSON files					#
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
@@ -52,9 +54,10 @@ import json
 import httplib
 import subprocess
 import time
+import struct
 from datetime import datetime
 from pprint import pprint
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 def cli_options():
    cli_args = {}
@@ -153,6 +156,7 @@ def snmp_walk(cli_args, router_list):
       location = keys[0]
       commstring = keys[1]
       oid = keys[2]
+      locationIdx = keys[3]
 
       try:
          session = netsnmp.Session(
@@ -174,10 +178,9 @@ def snmp_walk(cli_args, router_list):
       # Construct the results to return
       for result in results_objs:
          if is_number(result.val):
-            return_results[('%s.%s') % (count, result.iid)] = ( float(result.val))
+            return_results[('%s.%s') % (router, result.iid)] = ( float(result.val))
          else:
-            #return_results[('%s.%s') % (result.tag, result.iid)] = ( result.val)
-            return_results[('%s.%s') % (count, result.iid)] = ( result.val)
+            return_results[('%s.%s') % (router, result.iid)] = ( result.val)
 
          count +=1
 
@@ -186,7 +189,7 @@ def snmp_walk(cli_args, router_list):
    # Print each MAC address in verbose mode
    if cli_args['verbose']:
       print "{0} DEBUG: MAC address presence:".format(date_time())
-      for oid, mac in return_results.iteritems():
+      for router, mac in return_results.iteritems():
          mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
          print "{0}".format(mac)
 
@@ -201,6 +204,10 @@ def bin_to_mac(octet):
    return ":".join([x.encode("hex") for x in list(octet)])
 
 
+def mac_to_bin(mac):
+    return mac.replace(':', '').decode("hex")
+
+
 def mac_table(cli_parms, router_list):
    (mac_results) = snmp_walk(cli_parms, router_list)
 
@@ -210,12 +217,13 @@ def mac_table(cli_parms, router_list):
 def mac_in_table(searched_mac, mac_results):
    mac = searched_mac
    # Loop through every MAC address found
-   for counter, mac in mac_results.iteritems():
+   for router, mac in mac_results.iteritems():
       mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
       if mac == searched_mac:
          return True
 
    return False
+
 
 def read_json(json_file):
     file = json_file
@@ -231,14 +239,31 @@ def read_json(json_file):
 
     return data
 
+
 def get_router(routers):
    router_list = defaultdict(list)
    for key, value in routers.items():
        router_list[key].append(value["Location"])
        router_list[key].append(value["CommunityString"])
        router_list[key].append(value["RequestString"])
+       router_list[key].append(value["LocationIdx"])
    router_list = dict(router_list)
    return router_list
+
+
+def get_device_location(key, found_macs, router_list):
+   location_idx = 0
+   for router_ip_walk, mac in found_macs.iteritems():
+      if mac == mac_to_bin(key):
+         location_idx = get_location_idx(router_ip_walk.rsplit('.', 1)[0], router_list)
+
+   return location_idx
+
+
+def get_location_idx(router_ip_walk, router_list):
+   for router_ip, keys in router_list.iteritems():
+      if router_ip == router_ip_walk:
+         return keys[3]
 
 
 # This class is derived from Pymoticz, modified to use httplib
@@ -332,26 +357,37 @@ def main():
       # Create 1 dictionary with all routers to check
       (router_list) = get_router(routers)
 
-      # Do actual checking of MAC addresses against router entries
+      # Get all MAC addresses from router entries
       (found_macs) = mac_table(cli_parms, router_list)
 
+      # Sort dictionary by key so location can be determined more easily
+      (found_macs) = OrderedDict(sorted(found_macs.items(), key=lambda t: t[0]))
+      
+      # Loop through list of mobile devices and turn on/off corresponding switches and locations
       for key, value in data.items():
+
          # Switch by Index (idx)
          switch_idx = value["Idx"]
 	 switch_idx_optional = value["Idx_opt"]
+
+         # Look at which location mobile device is connected
+         switch_idx_location = get_device_location(key, found_macs, router_list)
 
          # Get instance of Domoticz class optional ip:port, default = localhost:8080
          d = Domoticz(cli_parms['domoticzhost'], switch_idx_optional)
 
          # Get Name of switch from Domoticz
-         switch_name = d.get_device(switch_idx)['Name']
+         switch_name_device = d.get_device(switch_idx)['Name']
+         if switch_idx_location != 0:
+            switch_name_device = d.get_device(switch_idx_location)['Name']
 
+         # Turn mobile device and (if provided) optional switch on or off
          if mac_in_table(key, found_macs):
             if d.turn_on_if_off(switch_idx) and cli_parms['verbose']: # Turn switch On only if Off
-               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_name)
+               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_name_device)
          else:
             if d.turn_off_if_on(switch_idx) and cli_parms['verbose']:# Turn switch Off only if On
-               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_name)
+               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_name_device)
 
       
       # Sleep for the amount of seconds give to this script before re-checking again
