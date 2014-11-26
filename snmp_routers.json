@@ -4,6 +4,7 @@
       "Model": "",
       "Purpose": "",
       "Location": "",
+      "LocationIdx": ,
       "CommunityString": "",
       "RequestString": ""
    },
@@ -12,6 +13,7 @@
       "Model": "",
       "Purpose": "",
       "Location": "",
+      "LocationIdx": ,
       "CommunityString": "",
       "RequestString": ""
    }
