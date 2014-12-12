@@ -13,8 +13,8 @@ So now this is a script fed by 2 input files (for router and mobile device detai
 ```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
-Version : 1.8.1
-Date : 26-11-2014
+Version : 1.9
+Date : 12-12-2014
 Author : xKingx
 
 Version       Date            Author    Major changes
@@ -28,11 +28,11 @@ Version       Date            Author    Major changes
 1.7           20-11-2014      xKingx    Bug fixes
 1.8           20-11-2014      xKingx    Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string
 1.8.1         26-11-2014      xKingx    Temporary version with initial code for location detection
+1.9           12-12-2014      xKingx    Location detection enabled with switching of "dummy" devices added
 ```
 
 ###TODO
-* Add way to check which router mobile device is connected to and do switching based of that if desired
-* Add option to use location switching and ignore if not used
+* Add option to ignore location switching if not used
 * Build in check for community string in SNMP version <3
 * General input validation on parameters received from command line and JSON files
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
@@ -77,7 +77,7 @@ Version       Date            Author    Major changes
    "Model"                      -> Router model - not used a.t.m.
    "Purpose"                    -> Router purpose - not used a.t.m.
    "Location"                   -> Router location - used to give location a meaningfull name
-   "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off switch in Domoticz
+   "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off location (dummy) switch in Domoticz
    "CommunityString"            -> Router SNMP communitystring (mandatory)
    "RequestString"              -> SNMP query string for value to be returned from router (mandatory)
   ```

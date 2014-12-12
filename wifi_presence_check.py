@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.8.1													#
-# Date : 26-11-2014													#
+# Version : 1.9														#
+# Date : 12-12-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -26,12 +26,12 @@
 # 1.7		20-11-2014	Bug fix											#
 # 1.8		20-11-2014	Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string	#
 #1.8.1		26-11-2014	Temporary version with initial code for location detection				#
+# 1.9		12-12-2014	Location detection enabled with switching of "dummy" devices added			#
 #															#
 # To Do															#
-# - Look at way to prevent devices that reconnect from triggering presence reporting					#
-# - Add way to check which router mobile device is connected to and do switching based of that if desired		#
-# - Add option to use location switching and ignore if not used								#
+# - Add option to ignore location switching if not used									#
 # - Build in check for community string in SNMP version <3								#
+# - Look at way to prevent devices that reconnect from triggering presence reporting                                    #
 # - General input validation on parameters received from command line and JSON files					#
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
 # - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as		# 
@@ -54,7 +54,6 @@ import json
 import httplib
 import subprocess
 import time
-import struct
 from datetime import datetime
 from pprint import pprint
 from collections import defaultdict, OrderedDict
@@ -256,6 +255,8 @@ def get_device_location(key, found_macs, router_list):
    for router_ip_walk, mac in found_macs.iteritems():
       if mac == mac_to_bin(key):
          location_idx = get_location_idx(router_ip_walk.rsplit('.', 1)[0], router_list)
+         pprint (location_idx)
+         pprint (mac)
 
    return location_idx
 
@@ -360,9 +361,6 @@ def main():
       # Get all MAC addresses from router entries
       (found_macs) = mac_table(cli_parms, router_list)
 
-      # Sort dictionary by key so location can be determined more easily
-      (found_macs) = OrderedDict(sorted(found_macs.items(), key=lambda t: t[0]))
-      
       # Loop through list of mobile devices and turn on/off corresponding switches and locations
       for key, value in data.items():
 
@@ -379,15 +377,19 @@ def main():
          # Get Name of switch from Domoticz
          switch_name_device = d.get_device(switch_idx)['Name']
          if switch_idx_location != 0:
-            switch_name_device = d.get_device(switch_idx_location)['Name']
+            switch_location_device_name = d.get_device(switch_idx_location)['Name']
 
-         # Turn mobile device and (if provided) optional switch on or off
+         # Turn mobile device and (if provided) optional switch and location on or off
          if mac_in_table(key, found_macs):
-            if d.turn_on_if_off(switch_idx) and cli_parms['verbose']: # Turn switch On only if Off
+            if d.turn_on_if_off(switch_idx) and cli_parms['verbose']: # Turn device switch On only if Off
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_name_device)
+            if d.turn_on_if_off(switch_idx_location) and cli_parms['verbose']: # Turn location switch On only if Off
+               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_location_device_name)
          else:
-            if d.turn_off_if_on(switch_idx) and cli_parms['verbose']:# Turn switch Off only if On
+            if d.turn_off_if_on(switch_idx) and cli_parms['verbose']:# Turn device switch Off only if On
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_name_device)
+            if d.turn_off_if_on(switch_idx_location) and cli_parms['verbose']:# Turn location switch Off only if On
+               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_location_device_name)
 
       
       # Sleep for the amount of seconds give to this script before re-checking again
