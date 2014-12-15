@@ -29,6 +29,7 @@ Version       Date            Author    Major changes
 1.8           20-11-2014      xKingx    Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string
 1.8.1         26-11-2014      xKingx    Temporary version with initial code for location detection
 1.9           12-12-2014      xKingx    Location detection enabled with switching of "dummy" devices added
+1.9.1         15-12-2014      xKingx    Fixed location detection switching as it did not work ok
 ```
 
 ###TODO

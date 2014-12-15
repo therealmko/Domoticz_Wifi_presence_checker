@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.9														#
-# Date : 12-12-2014													#
+# Version : 1.9.1													#
+# Date : 15-12-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -25,8 +25,9 @@
 # 1.6		20-11-2014	Moved SNMP key variable to SNMP Router JSON file					#
 # 1.7		20-11-2014	Bug fix											#
 # 1.8		20-11-2014	Prevent Idx_opt option in mobile JSON file from being mandatory, can be empty string	#
-#1.8.1		26-11-2014	Temporary version with initial code for location detection				#
+# 1.8.1		26-11-2014	Temporary version with initial code for location detection				#
 # 1.9		12-12-2014	Location detection enabled with switching of "dummy" devices added			#
+# 1.9.1		15-12-2014	Fixed location detection switching as it did not work ok				#
 #															#
 # To Do															#
 # - Add option to ignore location switching if not used									#
@@ -36,6 +37,7 @@
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
 # - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as		# 
 #   otherwise auto generated dictionay key in loop will be overwritten during dict.update()				#
+# - Make script compatible with python 3.x too										#
 #															#
 # Notes :														#
 # - This script is not compatible with python 3 and is tested on python 2.7						#
@@ -239,6 +241,20 @@ def read_json(json_file):
     return data
 
 
+def check_json_value(json_value, mandatory):
+   try:
+      check_value = value[json_value]
+   except KeyError, e:
+         
+      if mandatory == "yes":
+         check_value = 0
+
+      if cli_parms['verbose']: # Print error related to non existing optional idx when verbose option used
+         print 'A KeyError exception was raised - Reason "%s key not defined in json file."' % str(e)
+
+   return check_value
+
+
 def get_router(routers):
    router_list = defaultdict(list)
    for key, value in routers.items():
@@ -246,25 +262,25 @@ def get_router(routers):
        router_list[key].append(value["CommunityString"])
        router_list[key].append(value["RequestString"])
        router_list[key].append(value["LocationIdx"])
+       router_list[key].append("off")
    router_list = dict(router_list)
    return router_list
 
 
 def get_device_location(key, found_macs, router_list):
    location_idx = 0
+   router_ip = ""
    for router_ip_walk, mac in found_macs.iteritems():
       if mac == mac_to_bin(key):
-         location_idx = get_location_idx(router_ip_walk.rsplit('.', 1)[0], router_list)
-         pprint (location_idx)
-         pprint (mac)
+         router_ip, location_idx = get_location_idx(router_ip_walk.rsplit('.', 1)[0], router_list)
 
-   return location_idx
+   return router_ip, location_idx
 
 
 def get_location_idx(router_ip_walk, router_list):
    for router_ip, keys in router_list.iteritems():
       if router_ip == router_ip_walk:
-         return keys[3]
+         return router_ip, keys[3]
 
 
 # This class is derived from Pymoticz, modified to use httplib
@@ -366,32 +382,50 @@ def main():
 
          # Switch by Index (idx)
          switch_idx = value["Idx"]
-	 switch_idx_optional = value["Idx_opt"]
+         switch_idx_optional = value["Idx_opt"]
 
          # Look at which location mobile device is connected
-         switch_idx_location = get_device_location(key, found_macs, router_list)
+         router_ip, switch_idx_location = get_device_location(key, found_macs, router_list)
+
+         # If router ip is not empty it means a mobile device is connected and location switch should be set to on later
+         if router_ip:
+            router_list[router_ip][4] = "on"
 
          # Get instance of Domoticz class optional ip:port, default = localhost:8080
          d = Domoticz(cli_parms['domoticzhost'], switch_idx_optional)
 
          # Get Name of switch from Domoticz
-         switch_name_device = d.get_device(switch_idx)['Name']
-         if switch_idx_location != 0:
-            switch_location_device_name = d.get_device(switch_idx_location)['Name']
+         #switch_name_device = d.get_device(switch_idx)['Name']
+         #if switch_idx_location != 0:
+         #   switch_location_device_name = d.get_device(switch_idx_location)['Name']
 
-         # Turn mobile device and (if provided) optional switch and location on or off
+         # Turn mobile device and (if provided) optional switch on or off
          if mac_in_table(key, found_macs):
             if d.turn_on_if_off(switch_idx) and cli_parms['verbose']: # Turn device switch On only if Off
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_name_device)
-            if d.turn_on_if_off(switch_idx_location) and cli_parms['verbose']: # Turn location switch On only if Off
-               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_location_device_name)
          else:
             if d.turn_off_if_on(switch_idx) and cli_parms['verbose']:# Turn device switch Off only if On
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_name_device)
-            if d.turn_off_if_on(switch_idx_location) and cli_parms['verbose']:# Turn location switch Off only if On
+
+
+      # Loop through all routers and turn on or off location switch
+      for ip, router_values in router_list.items():
+         locationIdx = router_values[3]
+         onOffSwitch = router_values[4]
+
+         # Get instance of Domoticz class optional ip:port, default = localhost:8080
+         d = Domoticz(cli_parms['domoticzhost'], 0)
+
+         switch_location_device_name = d.get_device(locationIdx)['Name']
+ 
+         if onOffSwitch == "on":
+            if d.turn_on_if_off(locationIdx) and cli_parms['verbose']: # Turn location device switch On only if Off
+               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_location_device_name)
+         else:
+            if d.turn_off_if_on(locationIdx) and cli_parms['verbose']:# Turn location device switch Off only if On
                print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_location_device_name)
 
-      
+
       # Sleep for the amount of seconds give to this script before re-checking again
       time.sleep (float(cli_parms['sleeptime']))
 
