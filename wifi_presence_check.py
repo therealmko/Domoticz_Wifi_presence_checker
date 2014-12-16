@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.9.1													#
-# Date : 15-12-2014													#
+# Version : 1.10													#
+# Date : 16-12-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -28,12 +28,12 @@
 # 1.8.1		26-11-2014	Temporary version with initial code for location detection				#
 # 1.9		12-12-2014	Location detection enabled with switching of "dummy" devices added			#
 # 1.9.1		15-12-2014	Fixed location detection switching as it did not work ok				#
+# 1.10		16-12-2014	Ignoring switch location and added input checks on router json file			#
 #															#
 # To Do															#
-# - Add option to ignore location switching if not used									#
 # - Build in check for community string in SNMP version <3								#
 # - Look at way to prevent devices that reconnect from triggering presence reporting                                    #
-# - General input validation on parameters received from command line and JSON files					#
+# - General input validation on parameters received from command line and JSON files, router file done in v1.10		#
 # - Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch                            #
 # - Look into way results of SNMP walk are gathered as I put a dirty counter hack in. Update: key is needed as		# 
 #   otherwise auto generated dictionay key in loop will be overwritten during dict.update()				#
@@ -153,7 +153,7 @@ def snmp_walk(cli_args, router_list):
    results_objs = False
    count = 0
 
-   for router, keys in router_list.iteritems():
+   for router, keys in router_list.items():
       location = keys[0]
       commstring = keys[1]
       oid = keys[2]
@@ -190,7 +190,7 @@ def snmp_walk(cli_args, router_list):
    # Print each MAC address in verbose mode
    if cli_args['verbose']:
       print "{0} DEBUG: MAC address presence:".format(date_time())
-      for router, mac in return_results.iteritems():
+      for router, mac in return_results.items():
          mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
          print "{0}".format(mac)
 
@@ -218,7 +218,7 @@ def mac_table(cli_parms, router_list):
 def mac_in_table(searched_mac, mac_results):
    mac = searched_mac
    # Loop through every MAC address found
-   for router, mac in mac_results.iteritems():
+   for router, mac in mac_results.items():
       mac = bin_to_mac(mac).upper() # Convert binary MAC to HEX
       if mac == searched_mac:
          return True
@@ -257,20 +257,37 @@ def check_json_value(json_value, mandatory):
 
 def get_router(routers):
    router_list = defaultdict(list)
+
    for key, value in routers.items():
-       router_list[key].append(value["Location"])
-       router_list[key].append(value["CommunityString"])
-       router_list[key].append(value["RequestString"])
-       router_list[key].append(value["LocationIdx"])
-       router_list[key].append("off")
+      if "Location" in value:
+         router_list[key].append(value["Location"])
+      else:
+         router_list[key].append("No location specified")
+      if "CommunityString" in value:
+         router_list[key].append(value["CommunityString"])
+      else:
+        print '{0} ERROR: CommunityString needs to be specified in your router json file for {1}' .format(date_time(), key)
+        sys.exit(2)
+      if "RequestString" in value:
+         router_list[key].append(value["RequestString"])
+      else:
+         print '{0} ERROR: RequestString needs to be specified in your router json file for {1}' .format(date_time(), key)
+         sys.exit(2)
+      if "LocationIdx" in value:
+         router_list[key].append(value["LocationIdx"])
+      else:
+         router_list[key].append(0)
+      router_list[key].append("off")
+
    router_list = dict(router_list)
+
    return router_list
 
 
 def get_device_location(key, found_macs, router_list):
    location_idx = 0
    router_ip = ""
-   for router_ip_walk, mac in found_macs.iteritems():
+   for router_ip_walk, mac in found_macs.items():
       if mac == mac_to_bin(key):
          router_ip, location_idx = get_location_idx(router_ip_walk.rsplit('.', 1)[0], router_list)
 
@@ -278,7 +295,7 @@ def get_device_location(key, found_macs, router_list):
 
 
 def get_location_idx(router_ip_walk, router_list):
-   for router_ip, keys in router_list.iteritems():
+   for router_ip, keys in router_list.items():
       if router_ip == router_ip_walk:
          return router_ip, keys[3]
 
@@ -387,7 +404,7 @@ def main():
          # Look at which location mobile device is connected
          router_ip, switch_idx_location = get_device_location(key, found_macs, router_list)
 
-         # If router ip is not empty it means a mobile device is connected and location switch should be set to on later
+         # If router ip is not empty it means a mobile device is connected and location switch should be set/remain to on later
          if router_ip:
             router_list[router_ip][4] = "on"
 
@@ -413,17 +430,19 @@ def main():
          locationIdx = router_values[3]
          onOffSwitch = router_values[4]
 
-         # Get instance of Domoticz class optional ip:port, default = localhost:8080
-         d = Domoticz(cli_parms['domoticzhost'], 0)
+         # Only switch on / off router location switch if idx provided, default to 0 for none.
+         if locationIdx != 0:
+            # Get instance of Domoticz class optional ip:port, default = localhost:8080
+            d = Domoticz(cli_parms['domoticzhost'], 0)
 
-         switch_location_device_name = d.get_device(locationIdx)['Name']
+            switch_location_device_name = d.get_device(locationIdx)['Name']
  
-         if onOffSwitch == "on":
-            if d.turn_on_if_off(locationIdx) and cli_parms['verbose']: # Turn location device switch On only if Off
-               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_location_device_name)
-         else:
-            if d.turn_off_if_on(locationIdx) and cli_parms['verbose']:# Turn location device switch Off only if On
-               print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_location_device_name)
+            if onOffSwitch == "on":
+               if d.turn_on_if_off(locationIdx) and cli_parms['verbose']: # Turn location device switch On only if Off
+                  print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "On", switch_location_device_name)
+            else:
+               if d.turn_off_if_on(locationIdx) and cli_parms['verbose']:# Turn location device switch Off only if On
+                  print "{0} DEBUG: Switching {1}: {2}".format(date_time(), "Off", switch_location_device_name)
 
 
       # Sleep for the amount of seconds give to this script before re-checking again

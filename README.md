@@ -13,8 +13,8 @@ So now this is a script fed by 2 input files (for router and mobile device detai
 ```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
-Version : 1.9
-Date : 12-12-2014
+Version : 1.10
+Date : 16-12-2014
 Author : xKingx
 
 Version       Date            Author    Major changes
@@ -30,12 +30,13 @@ Version       Date            Author    Major changes
 1.8.1         26-11-2014      xKingx    Temporary version with initial code for location detection
 1.9           12-12-2014      xKingx    Location detection enabled with switching of "dummy" devices added
 1.9.1         15-12-2014      xKingx    Fixed location detection switching as it did not work ok
+1.10          16-12-2014      xKingx    Ignoring switch location and added input checks on router json file
 ```
 
 ###TODO
 * Add option to ignore location switching if not used
 * Build in check for community string in SNMP version <3
-* General input validation on parameters received from command line and JSON files
+* General input validation on parameters received from command line and JSON files, router file done in v1.10
 * Look into way results of SNMP walk are gathered as I put a dirty counter hack in
 * Look at way to prevent devices that reconnect from triggering presence reporting
 * Add MAC intruder detections, i.e. a MAC not known in JSON input triggers Domoticz switch
@@ -73,14 +74,14 @@ Version       Date            Author    Major changes
 
   - snmp_routers.json follows this setup
   ```
-   ipaddress                    -> IP address of your router (mandatory)
-   "Vendor"                     -> Router vendor - not used a.t.m.
-   "Model"                      -> Router model - not used a.t.m.
-   "Purpose"                    -> Router purpose - not used a.t.m.
-   "Location"                   -> Router location - used to give location a meaningfull name
-   "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off location (dummy) switch in Domoticz
-   "CommunityString"            -> Router SNMP communitystring (mandatory)
-   "RequestString"              -> SNMP query string for value to be returned from router (mandatory)
+   ipaddress                    -> IP address of your router (mandatory, it's the key of the router to check precense against)
+   "Vendor"                     -> Router vendor - not used a.t.m. / can be removed if desired
+   "Model"                      -> Router model - not used a.t.m. / can be removed if desired
+   "Purpose"                    -> Router purpose - not used a.t.m. / can be removed if desired
+   "Location"                   -> Router location - used to give location a meaningfull name, will be set to default if removed
+   "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off location (dummy) switch in Domoticz, can be removed if not used 
+   "CommunityString"            -> Router SNMP communitystring (mandatory, script will exit without it)
+   "RequestString"              -> SNMP query string for value to be returned from router (mandatory, script will exit without it)
   ```
 
   - wifi_devices.json follows this setup
