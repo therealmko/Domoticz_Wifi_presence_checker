@@ -29,6 +29,7 @@
 # 1.9		12-12-2014	Location detection enabled with switching of "dummy" devices added			#
 # 1.9.1		15-12-2014	Fixed location detection switching as it did not work ok				#
 # 1.10		16-12-2014	Ignoring switch location and added input checks on router json file			#
+# 1.10.1	19-12-2014      Added some json input checks and cleaned up some code					#
 #															#
 # To Do															#
 # - Build in check for community string in SNMP version <3								#
@@ -58,7 +59,7 @@ import subprocess
 import time
 from datetime import datetime
 from pprint import pprint
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 def cli_options():
    cli_args = {}
@@ -241,20 +242,6 @@ def read_json(json_file):
     return data
 
 
-def check_json_value(json_value, mandatory):
-   try:
-      check_value = value[json_value]
-   except KeyError, e:
-         
-      if mandatory == "yes":
-         check_value = 0
-
-      if cli_parms['verbose']: # Print error related to non existing optional idx when verbose option used
-         print 'A KeyError exception was raised - Reason "%s key not defined in json file."' % str(e)
-
-   return check_value
-
-
 def get_router(routers):
    router_list = defaultdict(list)
 
@@ -399,7 +386,10 @@ def main():
 
          # Switch by Index (idx)
          switch_idx = value["Idx"]
-         switch_idx_optional = value["Idx_opt"]
+         if "Idx_opt" in value:
+            switch_idx_optional = value["Idx_opt"]
+         else:
+            switch_idx_optional = 0
 
          # Look at which location mobile device is connected
          router_ip, switch_idx_location = get_device_location(key, found_macs, router_list)
@@ -412,9 +402,7 @@ def main():
          d = Domoticz(cli_parms['domoticzhost'], switch_idx_optional)
 
          # Get Name of switch from Domoticz
-         #switch_name_device = d.get_device(switch_idx)['Name']
-         #if switch_idx_location != 0:
-         #   switch_location_device_name = d.get_device(switch_idx_location)['Name']
+         switch_name_device = d.get_device(switch_idx)['Name']
 
          # Turn mobile device and (if provided) optional switch on or off
          if mac_in_table(key, found_macs):

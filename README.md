@@ -31,6 +31,7 @@ Version       Date            Author    Major changes
 1.9           12-12-2014      xKingx    Location detection enabled with switching of "dummy" devices added
 1.9.1         15-12-2014      xKingx    Fixed location detection switching as it did not work ok
 1.10          16-12-2014      xKingx    Ignoring switch location and added input checks on router json file
+1.10.1        19-12-2014      xKingx    Added some json input checks and cleaned up some code
 ```
 
 ###TODO
