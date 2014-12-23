@@ -13,8 +13,8 @@ So now this is a script fed by 2 input files (for router and mobile device detai
 ```
 Script : check_device_online.py
 Initial version : SweetPants & Jan N
-Version : 1.10
-Date : 16-12-2014
+Version : 1.10.2
+Date : 23-12-2014
 Author : xKingx
 
 Version       Date            Author    Major changes
@@ -32,6 +32,7 @@ Version       Date            Author    Major changes
 1.9.1         15-12-2014      xKingx    Fixed location detection switching as it did not work ok
 1.10          16-12-2014      xKingx    Ignoring switch location and added input checks on router json file
 1.10.1        19-12-2014      xKingx    Added some json input checks and cleaned up some code
+1.10.2        23-12-2014      xKingx    Added some more json input checks and updated README
 ```
 
 ###TODO
@@ -73,30 +74,34 @@ Version       Date            Author    Major changes
    [--verbose]                  -> Output verbose information
   ```
 
-  - snmp_routers.json follows this setup
+  - snmp_routers.json follows this setup. Non mandatory parameters could be removed if required.
   ```
    ipaddress                    -> IP address of your router (mandatory, it's the key of the router to check precense against)
    "Vendor"                     -> Router vendor - not used a.t.m. / can be removed if desired
    "Model"                      -> Router model - not used a.t.m. / can be removed if desired
    "Purpose"                    -> Router purpose - not used a.t.m. / can be removed if desired
-   "Location"                   -> Router location - used to give location a meaningfull name, will be set to default if removed
+   "Location"                   -> Router location - used to give location a meaningfull name, will be set to default if removed and not switched.
    "LocationIdx"                -> Router location Domoticz switch id - used to turn on/off location (dummy) switch in Domoticz, can be removed if not used 
    "CommunityString"            -> Router SNMP communitystring (mandatory, script will exit without it)
    "RequestString"              -> SNMP query string for value to be returned from router (mandatory, script will exit without it)
   ```
 
-  - wifi_devices.json follows this setup
+  - wifi_devices.json follows this setup. Non mandatory parameters could be removed if required.
   ```
     mobile mac address          -> MAC address of your mobile device (mandatory)
-    "Vendor"                    -> Mobile device vendor - not used a.t.m.
-    "Type"                      -> Mobile device type - not used a.t.m.
-    "Model"                     -> Mobile device model - not used a.t.m.
-    "Owner"                     -> Mobile device owner - not used a.t.m.
-    "Idx"                       -> Domoticz switch to turn on and off (mandatory)
-    "Idx_opt"                   -> Additional Domoticz switch to turn on and off, should be empty string, i.e. "" if not used
+    "Vendor"                    -> Mobile device vendor - not used a.t.m. / can be removed if desired
+    "Type"                      -> Mobile device type - not used a.t.m. / can be removed if desired
+    "Model"                     -> Mobile device model - not used a.t.m. / can be removed if desired
+    "Owner"                     -> Mobile device owner - not used a.t.m. / can be removed if desired
+    "Idx"                       -> Domoticz switch to turn on and off (mandatory, script will exit without it)
+    "Idx_opt"                   -> Additional Domoticz switch to turn on and off, can be removed if desired
   ```
 
 ###EXECUTION
 * This script is scheduled through a crontab entry (if preferred through a wrapper script). My crontab entry for a script looks like this:
 
 `* * * * * /home/pi/domoticz/scripts/wifi_presence_check.sh`
+
+The contents of that script for me are:
+
+`python /home/pi/domoticz/scripts/wifi_presence_check.py -d <ip>:<port> -s 20 -f /home/pi/domoticz/scripts/wifi_devices.json -r /home/pi/domoticz/scripts/snmp_routers.json | tee -a /home/pi/domoticz/log/wifi_presence_check.log`

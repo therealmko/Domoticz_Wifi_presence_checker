@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.10													#
-# Date : 16-12-2014													#
+# Version : 1.10.2													#
+# Date : 23-12-2014													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -30,6 +30,7 @@
 # 1.9.1		15-12-2014	Fixed location detection switching as it did not work ok				#
 # 1.10		16-12-2014	Ignoring switch location and added input checks on router json file			#
 # 1.10.1	19-12-2014      Added some json input checks and cleaned up some code					#
+# 1.10.2	23-12-2014	Added some more json input checks and updated README					#
 #															#
 # To Do															#
 # - Build in check for community string in SNMP version <3								#
@@ -385,7 +386,11 @@ def main():
       for key, value in data.items():
 
          # Switch by Index (idx)
-         switch_idx = value["Idx"]
+         if "Idx" in value:
+            switch_idx = value["Idx"]
+         else:
+            print '{0} ERROR: Device idx needs to be specified in your device json file for {1}' .format(date_time(), key)
+            sys.exit(2)
          if "Idx_opt" in value:
             switch_idx_optional = value["Idx_opt"]
          else:
