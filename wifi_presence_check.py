@@ -301,11 +301,16 @@ class Domoticz:
       http.request("GET", url)
       result = http.getresponse()
 
-      if (result.status != 200):
-         raise Exception
+      if (results.status != 200):
+        print(results.status)
+        http.close()
+        print("Error while fetching Domoticz URL. Please check Domoticz status and try again.")
+        return
+     else:
+        data = results.read()
+        http.close()
+        return json.loads(data)
 
-      http.close()
-      return json.loads(result.read())
 
 
    def list(self):
