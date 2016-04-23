@@ -33,6 +33,7 @@ Version       Date            Author    Major changes
 1.10          16-12-2014      xKingx    Ignoring switch location and added input checks on router json file
 1.10.1        19-12-2014      xKingx    Added some json input checks and cleaned up some code
 1.10.2        23-12-2014      xKingx    Added some more json input checks and updated README
+1.10.3        24-12-2016      xKingx    Fixed an issue with retrieving device details
 ```
 
 ###TODO
