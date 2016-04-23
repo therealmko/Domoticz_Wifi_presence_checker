@@ -11,8 +11,8 @@
 #															#
 # Script : check_device_online.py											#
 # Initial version : SweetPants & Jan N											#
-# Version : 1.10.2													#
-# Date : 23-12-2014													#
+# Version : 1.10.3													#
+# Date : 23-04-2016													#
 # Author : xKingx													#
 #															#
 # Version	Date		Major changes										#
@@ -31,6 +31,7 @@
 # 1.10		16-12-2014	Ignoring switch location and added input checks on router json file			#
 # 1.10.1	19-12-2014      Added some json input checks and cleaned up some code					#
 # 1.10.2	23-12-2014	Added some more json input checks and updated README					#
+# 1.10.3	23-04-2016	Fixed issue with returned device results by moving to urllib2				#
 #															#
 # To Do															#
 # - Build in check for community string in SNMP version <3								#
@@ -55,7 +56,8 @@ import sys
 import argparse
 import netsnmp
 import json
-import httplib
+#import httplib
+import urllib2
 import subprocess
 import time
 from datetime import datetime
@@ -297,15 +299,14 @@ class Domoticz:
 
    def _request(self, url):
       (ip, port) = self.host.split(":")
-      http = httplib.HTTPConnection(ip, port, timeout=2)
-      http.request("GET", url)
-      result = http.getresponse()
+      fullurl = "http://" + ip + ":" + port + url
+      data = json.load(urllib2.urlopen(fullurl, timeout=5))
 
-      if (result.status != 200):
-         raise Exception
-
-      http.close()
-      return json.loads(result.read())
+      if ( data['status'] != "OK"):
+         print("Error while fetching Domoticz URL. Please check Domoticz status and try again.")
+         return
+      else:
+         return data
 
 
    def list(self):
